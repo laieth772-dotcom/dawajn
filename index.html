@@ -5,153 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة الدواجن الاحترافي</title>
     <style>
-        :root { --main: #2e7d32; --accent: #ffa000; --bg: #f8f9fa; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; color: var(--text); }
+        :root { --main: #2e7d32; --danger: #c62828; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
         
-        /* شاشة الدخول */
-        .login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #2e7d32; }
-        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 350px; text-align: center; }
+        /* التنقل بين الصفحات */
+        .page { display: none; padding: 20px; }
+        .active { display: block; }
         
-        /* لوحة التحكم */
-        #dashboard { display: none; }
-        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-bottom: 3px solid var(--main); }
-        .container { padding: 30px 5%; max-width: 1200px; margin: auto; }
+        nav { background: var(--main); color: white; padding: 15px; display: flex; gap: 15px; overflow-x: auto; position: sticky; top: 0; }
+        nav span { cursor: pointer; padding: 5px 10px; border-radius: 5px; white-space: nowrap; }
+        nav span:hover { background: rgba(255,255,255,0.2); }
+
+        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: var(--main); color: white; width: 100%; }
+        .btn-del { background: var(--danger); color: white; padding: 5px 10px; font-size: 12px; }
         
-        /* البطاقات والجداول */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .form-card { border-top: 5px solid var(--accent); }
-        
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        button { width: 100%; padding: 12px; background: var(--main); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { opacity: 0.9; }
-        
-        table { width: 100%; background: white; border-collapse: collapse; margin-top: 20px; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
-        th { background: #f1f1f1; color: var(--main); }
-        
-        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; background: #e8f5e9; color: #2e7d32; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        th { background: #f8f9fa; color: var(--main); }
     </style>
 </head>
 <body>
 
-    <div id="loginPage" class="login-screen">
-        <div class="login-card">
-            <h1 style="color: var(--main); margin-bottom: 10px;">POULTRY SYSTEM</h1>
-            <p style="color: #666;">إدارة مشاريع الدواجن الذكية</p>
-            <input type="text" id="username" placeholder="اسم المستخدم">
-            <input type="password" id="password" placeholder="كلمة المرور">
-            <button onclick="handleLogin()">دخول النظام</button>
+    <nav id="navbar" style="display:none;">
+        <span onclick="showPage('home')">الرئيسية</span>
+        <span onclick="showPage('add-birds')">إدارة العنابر</span>
+        <span onclick="showPage('reports')">التقارير</span>
+        <span onclick="location.reload()" style="background:rgba(0,0,0,0.2)">خروج</span>
+    </nav>
+
+    <div id="login-page" class="page active" style="text-align:center; margin-top:100px;">
+        <div class="card" style="max-width:350px; margin:auto;">
+            <h2>تسجيل دخول</h2>
+            <input type="password" id="pass" placeholder="كلمة المرور">
+            <button class="btn-add" onclick="login()">دخول</button>
         </div>
     </div>
 
-    <div id="dashboard">
-        <header>
-            <h2 style="color: var(--main); margin:0;">لوحة التحكم الرئيسية</h2>
-            <button onclick="location.reload()" style="width: auto; background: #d32f2f; padding: 8px 20px;">خروج</button>
-        </header>
-
-        <div class="container">
-            <div class="grid">
-                <div class="card" style="border-right: 5px solid #2e7d32;">
-                    <small>إجمالي عدد الطيور</small>
-                    <h2 id="totalBirdsDisplay">0</h2>
-                </div>
-                <div class="card" style="border-right: 5px solid #ffa000;">
-                    <small>إنتاج اليوم (طبق)</small>
-                    <h2>0</h2>
-                </div>
-            </div>
-
-            <div class="grid">
-                <div class="card form-card">
-                    <h3>إدخال بيانات يومية</h3>
-                    <p style="font-size: 12px; color: #777;">سيتم حفظ هذه البيانات تلقائياً في ملف الإكسل</p>
-                    <input type="text" id="barnId" placeholder="رقم أو اسم العنبر">
-                    <input type="number" id="birdsCount" placeholder="عدد الطيور الحالي">
-                    <input type="number" id="eggsCount" placeholder="كمية الإنتاج">
-                    <button onclick="sendDataToSheets()" id="saveBtn">حفظ في قاعدة البيانات</button>
-                </div>
-
-                <div class="card" style="grid-column: span 1;">
-                    <h3>حالة الدجاج الحالية</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>الدجاج</th>
-                                <th>الحالة</th>
-                                <th>الإنتاج</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>دجاج 1</td>
-                                <td><span class="badge">مستقر</span></td>
-                                <td>85%</td>
-                            </tr>
-                            <tr>
-                                <td>دجاج 2</td>
-                                <td><span class="badge">مستقر</span></td>
-                                <td>90%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div id="home" class="page">
+        <h2>نظرة عامة</h2>
+        <div class="card" style="background: #e8f5e9;">
+            <h3>إجمالي الدواجن الحالي: <span id="total-count">0</span></h3>
         </div>
+    </div>
+
+    <div id="add-birds" class="page">
+        <div class="card">
+            <h3>إضافة بيانات جديدة</h3>
+            <input type="text" id="barn-name" placeholder="اسم العنبر">
+            <input type="number" id="bird-num" placeholder="العدد">
+            <button class="btn-add" onclick="addItem()">إضافة للسجلات</button>
+        </div>
+
+        <h3>السجلات الحالية (يمكنك الحذف من هنا)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>العنبر</th>
+                    <th>العدد</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="reports" class="page">
+        <h2>التقارير اليومية</h2>
+        <p>سيتم عرض ملخص العمل هنا بناءً على السجلات.</p>
     </div>
 
     <script>
-        // دالة تسجيل الدخول
-        function handleLogin() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            if(u === "admin" && p === "123") {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-            } else {
-                alert("بيانات الدخول خاطئة!");
+        // مصفوفة البيانات (قاعدة البيانات المحلية)
+        let poultryData = JSON.parse(localStorage.getItem('poultryDB')) || [];
+
+        function login() {
+            if(document.getElementById('pass').value === "123") {
+                document.getElementById('login-page').classList.remove('active');
+                document.getElementById('navbar').style.display = 'flex';
+                showPage('home');
+                renderTable();
+            } else { alert("خطأ!"); }
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            updateStats();
+        }
+
+        function addItem() {
+            const name = document.getElementById('barn-name').value;
+            const num = document.getElementById('bird-num').value;
+            if(name && num) {
+                poultryData.push({ id: Date.now(), name: name, num: parseInt(num) });
+                saveAndRefresh();
+                document.getElementById('barn-name').value = '';
+                document.getElementById('bird-num').value = '';
             }
         }
 
-        // دالة إرسال البيانات لجوجل شيت
-        function sendDataToSheets() {
-            const btn = document.getElementById('saveBtn');
-            const data = {
-                barn: document.getElementById('barnId').value,
-                count: document.getElementById('birdsCount').value,
-                eggs: document.getElementById('eggsCount').value
-            };
+        function deleteItem(id) {
+            poultryData = poultryData.filter(item => item.id !== id);
+            saveAndRefresh();
+        }
 
-            if(!data.barn || !data.count) {
-                alert("يرجى ملء البيانات الأساسية");
-                return;
-            }
+        function saveAndRefresh() {
+            localStorage.setItem('poultryDB', JSON.stringify(poultryData));
+            renderTable();
+            updateStats();
+        }
 
-            btn.innerText = "جاري الحفظ...";
-            btn.disabled = true;
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = poultryData.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.num}</td>
+                    <td><button class="btn-del" onclick="deleteItem(${item.id})">حذف</button></td>
+                </tr>
+            `).join('');
+        }
 
-            // ضع هنا الرابط (URL) الذي حصلت عليه من Google Apps Script
-            const scriptURL = 'ضع_رابط_جوجل_هنا';
-
-            fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors', // لتجنب مشاكل الحماية أثناء التجربة
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                alert("تم إرسال البيانات بنجاح إلى الإكسل!");
-                btn.innerText = "حفظ في قاعدة البيانات";
-                btn.disabled = false;
-                // تصفير الخانات
-                document.getElementById('barnId').value = "";
-                document.getElementById('birdsCount').value = "";
-                document.getElementById('eggsCount').value = "";
-            }).catch(err => {
-                alert("خطأ في الاتصال");
-                btn.disabled = false;
-            });
+        function updateStats() {
+            const total = poultryData.reduce((sum, item) => sum + item.num, 0);
+            document.getElementById('total-count').innerText = total;
         }
     </script>
 </body>
