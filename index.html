@@ -1,311 +1,150 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة محمية الدوسري المتكامل</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #1b5e20; --secondary: #2e7d32; --accent: #ffa000;
-            --danger: #d32f2f; --info: #0288d1; --bg: #f8f9fa; --white: #ffffff;
-        }
+<meta charset="UTF-8">
+<title>إدارة الدواجن</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; color: #333; transition: 0.3s; }
-
-        /* نظام التنبيهات المنبثقة */
-        #notification-box { position: fixed; top: 20px; left: 20px; z-index: 10000; width: 280px; }
-        .toast { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); margin-bottom: 10px; border-right: 5px solid var(--accent); animation: slideIn 0.5s forwards; }
-        @keyframes slideIn { from { transform: translateX(-110%); } to { transform: translateX(0); } }
-
-        /* شاشة الدخول */
-        #login-page { position: fixed; inset: 0; background: linear-gradient(135deg, var(--primary), var(--secondary)); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .login-card { background: white; padding: 35px; border-radius: 25px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-
-        /* الهيكل العام */
-        header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        aside { width: 280px; background: white; height: 100vh; position: fixed; right: -280px; top: 0; z-index: 1001; transition: 0.4s; overflow-y: auto; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
-        aside.open { right: 0; }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
-        .overlay.show { display: block; }
-
-        /* القائمة */
-        .menu-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 500; }
-        .menu-item:hover { background: #f9f9f9; color: var(--primary); }
-        .menu-cat { background: #eee; padding: 8px 20px; font-size: 11px; font-weight: bold; color: #777; }
-
-        /* المحتوى والبطاقات */
-        main { padding: 15px; max-width: 1200px; margin: auto; }
-        .page { display: none; animation: fadeIn 0.4s; }
-        .active { display: block; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 15px; border-radius: 15px; border-right: 5px solid var(--accent); text-align: center; }
-
-        /* مدخلات وجداول */
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
-        .btn-p { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
-        th { background: #f8f9fa; color: var(--primary); }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+<style>
+body{
+  font-family: Tahoma;
+  background:#eef2f3;
+  text-align:center;
+  margin:0;
+}
+.container{padding:20px}
+input,button{
+  width:85%;
+  padding:12px;
+  margin:8px;
+}
+button{
+  background:#2e8b57;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:15px;
+  padding:20px;
+}
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+}
+.hidden{display:none}
+</style>
 </head>
+
 <body>
 
-    <div id="notification-box"></div>
+<div class="container" id="loginBox">
+  <h2>تسجيل الدخول</h2>
+  <input id="email" type="email" placeholder="البريد الإلكتروني">
+  <input id="password" type="password" placeholder="كلمة المرور">
+  <button onclick="login()">دخول</button>
+  <p><a href="#" onclick="showRegister()">إنشاء حساب</a></p>
+</div>
 
-    <div id="login-page">
-        <div class="login-card">
-            <i class="fas fa-kiwi-bird fa-4x" style="color: var(--primary);"></i>
-            <h2 style="margin: 15px 0;">محمية الدوسري</h2>
-            <p style="color: #666; font-size: 14px;">نظام الإدارة الذكي المتكامل</p>
-            <input type="text" id="username" placeholder="اسم المستخدم (admin)">
-            <input type="password" id="password" placeholder="كلمة المرور (123)">
-            <button class="btn-p" onclick="handleLogin()">دخول آمن</button>
-        </div>
-    </div>
+<div class="container hidden" id="registerBox">
+  <h2>إنشاء حساب</h2>
+  <input id="rEmail" type="email" placeholder="البريد الإلكتروني">
+  <input id="rPassword" type="password" placeholder="كلمة المرور">
+  <button onclick="register()">تسجيل</button>
+  <button onclick="showLogin()">رجوع</button>
+</div>
 
-    <div id="main-ui" style="display:none;">
-        <header>
-            <i class="fas fa-bars fa-lg" onclick="toggleSidebar()"></i>
-            <div style="font-weight: bold;">لوحة التحكم</div>
-            <i class="fas fa-bell fa-lg" onclick="showPage('notifications')"></i>
-        </header>
+<div class="container hidden" id="dashboard">
+  <h1>🐔 نظام إدارة الدواجن</h1>
+  <div class="grid">
+    <div class="card" onclick="addData('الدجاج')">🐔 الدجاج</div>
+    <div class="card" onclick="addData('الأفراخ')">🐣 الأفراخ</div>
+    <div class="card" onclick="addData('البيض')">🥚 البيض</div>
+    <div class="card" onclick="addData('المفقسة')">🐤 المفقسة</div>
+    <div class="card" onclick="addData('العلف والأدوية')">🌾 العلف والأدوية</div>
+    <div class="card" onclick="addData('حساب العمر')">⏳ حساب العمر</div>
+    <div class="card" onclick="sendNotify()">🔔 الإشعارات</div>
+    <div class="card" onclick="addData('الأرباح والخسائر')">💰 الأرباح والخسائر</div>
+  </div>
+  <button onclick="logout()">تسجيل خروج</button>
+</div>
 
-        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,onAuthStateChanged,signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore,collection,addDoc }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        <aside id="sidebar">
-            <div style="padding: 30px; text-align: center; background: var(--primary); color: white;">
-                <h3>محمية الدوسري</h3>
-            </div>
-            <div class="menu-cat">العامة</div>
-            <div class="menu-item" onclick="showPage('dashboard')"><i class="fas fa-chart-pie"></i> الرئيسية (Dashboard)</div>
-            <div class="menu-item" onclick="showPage('profile')"><i class="fas fa-user"></i> الملف الشخصي</div>
-            
-            <div class="menu-cat">إدارة الأفراخ</div>
-            <div class="menu-item" onclick="showPage('batches')"><i class="fas fa-layer-group"></i> إضافة دفعة (أعمار تلقائية)</div>
-            <div class="menu-item" onclick="showPage('mortality')"><i class="fas fa-skull"></i> سجل النفوق والتحصينات</div>
-            
-            <div class="menu-cat">العلف والمخزن</div>
-            <div class="menu-item" onclick="showPage('feed')"><i class="fas fa-box-open"></i> استهلاك العلف اليومي</div>
-            
-            <div class="menu-cat">المالية</div>
-            <div class="menu-item" onclick="showPage('finance')"><i class="fas fa-money-bill-wave"></i> الأرباح والخسائر</div>
-            
-            <div class="menu-cat">النظام</div>
-            <div class="menu-item" onclick="location.reload()" style="color: var(--danger);"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
-        </aside>
+/* 🔴 غيّر القيم التالية فقط */
+const firebaseConfig = {
+  apiKey: "API_KEY",
+  authDomain: "PROJECT_ID.firebaseapp.com",
+  projectId: "PROJECT_ID",
+  storageBucket: "PROJECT_ID.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
 
-        <main>
-            <div id="dashboard" class="page active">
-                <div class="stats-grid">
-                    <div class="stat-card"><h5>العدد الحالي</h5><div id="dash-birds" style="font-size: 20px; font-weight: bold; color: var(--primary);">0</div></div>
-                    <div class="stat-card" style="border-right-color: var(--info);"><h5>العمر (أقدم دفعة)</h5><div id="dash-age" style="font-size: 20px; font-weight: bold;">0 يوم</div></div>
-                    <div class="stat-card" style="border-right-color: #4caf50;"><h5>رصيد العلف</h5><div id="dash-feed" style="font-size: 20px; font-weight: bold;">0 كجم</div></div>
-                    <div class="stat-card" style="border-right-color: var(--danger);"><h5>النفوق الكلي</h5><div id="dash-mort" style="font-size: 20px; font-weight: bold;">0</div></div>
-                </div>
-                <div class="card">
-                    <h3>ملخص الحالة المالية</h3>
-                    <canvas id="financeChart" height="200"></canvas>
-                </div>
-            </div>
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-            <div id="batches" class="page">
-                <div class="card">
-                    <h3><i class="fas fa-plus-circle"></i> إضافة دفعة أفراخ</h3>
-                    <input type="date" id="b-date">
-                    <input type="number" id="b-count" placeholder="العدد الابتدائي">
-                    <select id="b-type"><option value="لحم">دجاج لحم</option><option value="بيض">دجاج بيض</option></select>
-                    <button class="btn-p" onclick="addBatch()">حفظ الدفعة</button>
-                </div>
-                <div class="card" style="overflow-x: auto;">
-                    <h4>سجل الدفعات الحية</h4>
-                    <table id="batch-table">
-                        <thead><tr><th>التاريخ</th><th>العدد</th><th>العمر باليوم</th><th>حذف</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+window.login = () =>{
+  signInWithEmailAndPassword(auth,email.value,password.value)
+  .catch(e=>alert(e.message));
+};
 
-            <div id="mortality" class="page">
-                <div class="card">
-                    <h3>تسجيل نفوق يومي</h3>
-                    <input type="number" id="m-count" placeholder="عدد الحالات النافقة">
-                    <button class="btn-p" style="background: var(--danger);" onclick="addMortality()">تسجيل الحالة</button>
-                </div>
-                <div class="card">
-                    <h4>تنبيهات التحصينات القادمة</h4>
-                    <div id="vaccine-alerts" style="font-size: 14px; color: #555;">لا توجد تحصينات اليوم.</div>
-                </div>
-            </div>
+window.register = () =>{
+  createUserWithEmailAndPassword(auth,rEmail.value,rPassword.value)
+  .then(showLogin)
+  .catch(e=>alert(e.message));
+};
 
-            <div id="feed" class="page">
-                <div class="card">
-                    <h3>إدارة مخزن العلف</h3>
-                    <input type="number" id="f-qty" placeholder="كمية العلف المضافة للمخزن (كجم)">
-                    <button class="btn-p" onclick="addFeed()">إضافة رصيد</button>
-                </div>
-                <div class="card" style="background: #e1f5fe;">
-                    <h4>الحسابات الذكية للعلف</h4>
-                    <p>الاستهلاك اليومي المطلوب: <b id="daily-need">0</b> كجم</p>
-                    <p id="feed-status" style="font-size: 14px; color: var(--primary);">المخزن كافي.</p>
-                </div>
-            </div>
+window.logout = ()=>signOut(auth);
 
-            <div id="finance" class="page">
-                <div class="card">
-                    <h3>إضافة مبيعات / مشتريات</h3>
-                    <input type="text" id="fin-desc" placeholder="البيان (بيع دجاج، شراء علف..)">
-                    <input type="number" id="fin-amount" placeholder="المبلغ">
-                    <select id="fin-type"><option value="in">إيرادات (+)</option><option value="out">مصروفات (-)</option></select>
-                    <button class="btn-p" onclick="addFinance()">حفظ الحركة المالية</button>
-                </div>
-                <div class="card">
-                    <h4>تقرير الأرباح والخسائر</h4>
-                    <h2 id="net-profit" style="text-align: center;">0 د.ع</h2>
-                </div>
-            </div>
+window.addData = async(section)=>{
+  const value = prompt("أدخل البيانات:");
+  if(!value)return;
+  await addDoc(collection(db,section),{
+    value:value,
+    date:new Date()
+  });
+  alert("تم الحفظ ✔");
+};
 
-        </main>
-    </div>
+window.sendNotify = ()=>{
+  if(Notification.permission!=="granted")
+    Notification.requestPermission();
+  new Notification("إدارة الدواجن",{body:"تنبيه من النظام"});
+};
 
-    <script>
-        // قاعدة البيانات الشاملة
-        let db = JSON.parse(localStorage.getItem('Dousari_Ultimate_DB')) || {
-            batches: [], mortality: [], feed: 0, finance: []
-        };
+window.showRegister = ()=>{
+  loginBox.classList.add("hidden");
+  registerBox.classList.remove("hidden");
+};
 
-        function handleLogin() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            if(u === "admin" && p === "123") {
-                document.getElementById('login-page').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'block';
-                updateAll();
-                pushNotify("مرحباً بك في نظام الدوسري", "تم تسجيل الدخول بنجاح");
-            } else { alert("بيانات خاطئة!"); }
-        }
+window.showLogin = ()=>{
+  registerBox.classList.add("hidden");
+  loginBox.classList.remove("hidden");
+};
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('show');
-        }
+onAuthStateChanged(auth,user=>{
+  if(user){
+    loginBox.classList.add("hidden");
+    registerBox.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+  }else{
+    dashboard.classList.add("hidden");
+    loginBox.classList.remove("hidden");
+  }
+});
+</script>
 
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            toggleSidebar();
-            updateAll();
-        }
-
-        // الوظائف الذكية
-        function addBatch() {
-            const date = document.getElementById('b-date').value;
-            const count = parseInt(document.getElementById('b-count').value);
-            if(date && count) {
-                db.batches.push({ id: Date.now(), date, count });
-                pushNotify("دفعة جديدة", "تمت إضافة " + count + " فرخ للنظام");
-                save();
-            }
-        }
-
-        function addMortality() {
-            const count = parseInt(document.getElementById('m-count').value);
-            if(count) {
-                db.mortality.push({ id: Date.now(), count, date: new Date().toLocaleDateString() });
-                if(count > 10) pushNotify("⚠️ تنبيه هام", "هناك زيادة في نسبة النفوق المسجلة!");
-                save();
-            }
-        }
-
-        function addFeed() {
-            const qty = parseInt(document.getElementById('f-qty').value);
-            if(qty) {
-                db.feed += qty;
-                pushNotify("المخزن", "تمت إضافة " + qty + " كجم علف");
-                save();
-            }
-        }
-
-        function addFinance() {
-            const desc = document.getElementById('fin-desc').value;
-            const amount = parseInt(document.getElementById('fin-amount').value);
-            const type = document.getElementById('fin-type').value;
-            if(desc && amount) {
-                db.finance.push({ id: Date.now(), desc, amount, type });
-                save();
-            }
-        }
-
-        function save() {
-            localStorage.setItem('Dousari_Ultimate_DB', JSON.stringify(db));
-            updateAll();
-            document.querySelectorAll('input').forEach(i => i.value = '');
-        }
-
-        function updateAll() {
-            // حساب الأرقام
-            const totalIn = db.batches.reduce((s, b) => s + b.count, 0);
-            const totalMort = db.mortality.reduce((s, m) => s + m.count, 0);
-            const currentBirds = totalIn - totalMort;
-            
-            // حساب العمر
-            let oldestAge = 0;
-            if(db.batches.length > 0) {
-                const start = new Date(db.batches[0].date);
-                oldestAge = Math.ceil(Math.abs(new Date() - start) / (1000 * 60 * 60 * 24));
-            }
-
-            // تحديث الشاشة الرئيسية
-            document.getElementById('dash-birds').innerText = currentBirds;
-            document.getElementById('dash-age').innerText = oldestAge + " يوم";
-            document.getElementById('dash-feed').innerText = db.feed + " كجم";
-            document.getElementById('dash-mort').innerText = totalMort;
-
-            // تحديث ذكاء العلف
-            const dailyReq = (currentBirds * 0.15).toFixed(1);
-            document.getElementById('daily-need').innerText = dailyReq;
-            if(db.feed < dailyReq * 2) {
-                document.getElementById('feed-status').innerText = "❌ المخزن لا يكفي لغدٍ!";
-                document.getElementById('feed-status').style.color = "red";
-                pushNotify("⚠️ نفاد العلف", "المخزون الحالي يوشك على الانتهاء");
-            }
-
-            // تحديث المالية
-            const income = db.finance.filter(f => f.type === 'in').reduce((s, f) => s + f.amount, 0);
-            const costs = db.finance.filter(f => f.type === 'out').reduce((s, f) => s + f.amount, 0);
-            document.getElementById('net-profit').innerText = (income - costs).toLocaleString() + " د.ع";
-
-            // ملء الجداول
-            document.getElementById('batch-table').innerHTML = db.batches.map(b => `
-                <tr><td>${b.date}</td><td>${b.count}</td><td>${Math.ceil(Math.abs(new Date() - new Date(b.date)) / (1000 * 60 * 60 * 24))}</td><td><i class="fas fa-trash" onclick="deleteItem('batches', ${b.id})"></i></td></tr>
-            `).join('');
-        }
-
-        function pushNotify(title, msg) {
-            const box = document.getElementById('notification-box');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<strong>${title}</strong><br><small>${msg}</small>`;
-            box.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        function deleteItem(type, id) {
-            db[type] = db[type].filter(x => x.id !== id);
-            save();
-        }
-
-        // الرسم البياني
-        const ctx = document.getElementById('financeChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: { labels: ['إيرادات', 'مصروفات'], datasets: [{ data: [1500, 800], backgroundColor: ['#2e7d32', '#d32f2f'] }] },
-            options: { plugins: { legend: { display: false } } }
-        });
-    </script>
 </body>
 </html>
