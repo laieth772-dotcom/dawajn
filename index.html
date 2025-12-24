@@ -1,143 +1,199 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إدارة الدواجن</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{
-  font-family: Tahoma;
-  background:#eef2f3;
-  text-align:center;
-  margin:0;
-}
-.container{padding:20px}
-input,button{
-  width:85%;
-  padding:12px;
-  margin:8px;
-}
-button{
-  background:#2e8b57;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:15px;
-  padding:20px;
-}
-.card{
-  background:#fff;
-  padding:20px;
-  border-radius:10px;
-  cursor:pointer;
-}
-.hidden{display:none}
-</style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة القيادة - محمية الدوسري</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --blue-main: #3b82f6; --green-profit: #4caf50; --red-loss: #ef4444;
+            --bg-light: #f3f4f6; --white: #ffffff;
+        }
 
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-light); margin: 0; padding-bottom: 70px; color: #333; }
+
+        /* الهيدر العلوي */
+        .top-header {
+            background: var(--blue-main); color: white; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+        }
+
+        /* حاوية البطاقات العلوية */
+        .summary-container { display: flex; gap: 10px; padding: 15px; }
+        .summary-left { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .summary-right { flex: 1; background: white; border-radius: 15px; padding: 10px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        .mini-card { background: white; padding: 12px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-right: 5px solid; }
+        .card-income { border-right-color: var(--green-profit); }
+        .card-expense { border-right-color: var(--red-loss); }
+        .card-profit { border-right-color: var(--blue-main); }
+
+        .val { font-size: 18px; font-weight: bold; margin-top: 5px; }
+        .lbl { font-size: 12px; color: #666; }
+
+        /* الأزرار الكبيرة وسط الشاشة */
+        .quick-access { padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .access-btn { background: var(--blue-main); color: white; border-radius: 20px; padding: 20px 10px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .access-btn i { font-size: 24px; margin-bottom: 10px; display: block; }
+        .access-btn span { font-size: 13px; font-weight: 500; }
+
+        /* شريط التنقل السفلي */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--white);
+            display: flex; justify-content: space-around; padding: 10px 0;
+            border-top: 1px solid #ddd; z-index: 1000;
+        }
+        .nav-item { text-align: center; color: #666; cursor: pointer; flex: 1; }
+        .nav-item i { font-size: 20px; }
+        .nav-item div { font-size: 11px; margin-top: 4px; }
+        .nav-item.active { color: var(--blue-main); }
+
+        /* الصفحات */
+        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* شاشة الدخول */
+        #login-overlay { position: fixed; inset: 0; background: #e5e7eb; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-popup { background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; outline: none; }
+        .btn-login { background: var(--blue-main); color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: bold; }
+
+        canvas { max-width: 100% !important; height: auto !important; }
+    </style>
+</head>
 <body>
 
-<div class="container" id="loginBox">
-  <h2>تسجيل الدخول</h2>
-  <input id="email" type="email" placeholder="البريد الإلكتروني">
-  <input id="password" type="password" placeholder="كلمة المرور">
-  <button onclick="login()">دخول</button>
-  <p>ما عندك حساب؟ <a href="#" onclick="showRegister()">إنشاء حساب</a></p>
-</div>
+    <div id="login-overlay">
+        <div class="login-popup">
+            <h3 style="margin-top:0">Loginn</h3>
+            <input type="text" placeholder="اسم المستخدم" id="u-name">
+            <input type="password" placeholder="كلمة المرور" id="u-pass">
+            <button class="btn-login" onclick="checkLogin()">Button</button>
+        </div>
+    </div>
 
-<div class="container hidden" id="registerBox">
-  <h2>إنشاء حساب جديد</h2>
-  <input id="rEmail" type="email" placeholder="البريد الإلكتروني">
-  <input id="rPassword" type="password" placeholder="كلمة المرور">
-  <button onclick="register()">تسجيل</button>
-  <button onclick="showLogin()">رجوع</button>
-</div>
+    <div class="top-header" id="top-head" style="display:none;">
+        <i class="fas fa-user-circle fa-2x"></i>
+        <div style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 10px; font-size: 14px;">كل الوقت <i class="fas fa-calendar-alt"></i></div>
+        <i class="fas fa-globe"></i>
+    </div>
 
-<div class="container hidden" id="dashboard">
-  <h1>🐔 نظام إدارة الدواجن</h1>
-  <div class="grid">
-    <div class="card" onclick="addData('الدجاج')">🐔 الدجاج</div>
-    <div class="card" onclick="addData('الأفراخ')">🐣 الأفراخ</div>
-    <div class="card" onclick="addData('البيض')">🥚 البيض</div>
-    <div class="card" onclick="addData('المفقسة')">🐤 المفقسة</div>
-    <div class="card" onclick="addData('العلف والأدوية')">🌾 العلف والأدوية</div>
-    <div class="card" onclick="addData('حساب العمر')">⏳ حساب العمر</div>
-    <div class="card" onclick="sendNotify()">🔔 الإشعارات</div>
-    <div class="card" onclick="addData('الأرباح والخسائر')">💰 الأرباح والخسائر</div>
-  </div>
-  <button onclick="logout()">تسجيل خروج</button>
-</div>
+    <main id="main-content" style="display:none;">
+        
+        <div id="home" class="page active">
+            <div class="summary-container">
+                <div class="summary-left">
+                    <div class="mini-card card-income">
+                        <div class="lbl">دخل <i class="fas fa-arrow-up"></i></div>
+                        <div class="val" id="total-in">0 د.ع</div>
+                    </div>
+                    <div class="mini-card card-expense">
+                        <div class="lbl">مصروف <i class="fas fa-arrow-down"></i></div>
+                        <div class="val" id="total-out">0 د.ع</div>
+                    </div>
+                    <div class="mini-card card-profit">
+                        <div class="lbl">الربح <i class="fas fa-dollar-sign"></i></div>
+                        <div class="val" id="net-profit" style="color:var(--blue-main)">0 د.ع</div>
+                    </div>
+                </div>
+                <div class="summary-right">
+                    <canvas id="pieChart"></canvas>
+                    <div style="font-size:11px; margin-top:10px; color:#666">
+                        <i class="fas fa-circle" style="color:#4caf50"></i> دخل 
+                        <i class="fas fa-circle" style="color:#ef4444; margin-right:5px"></i> مصروف
+                    </div>
+                </div>
+            </div>
 
-<script>
-// بيانات وهمية لتسجيل الدخول
-const defaultAccounts = [{email:"admin@test.com", password:"123456"}];
+            <h4 style="margin: 20px 15px 10px; text-align:center">Quick-Access</h4>
+            <div class="quick-access">
+                <div class="access-btn" onclick="showPage('batches')"><i class="fas fa-kiwi-bird"></i><span>الدواجن</span></div>
+                <div class="access-btn" onclick="showPage('store')"><i class="fas fa-boxes"></i><span>المخزون</span></div>
+                <div class="access-btn" onclick="showPage('health')"><i class="fas fa-medkit"></i><span>الصحة</span></div>
+                <div class="access-btn" onclick="showPage('eggs')"><i class="fas fa-egg"></i><span>البيض</span></div>
+                <div class="access-btn" onclick="showPage('finance')"><i class="fas fa-wallet"></i><span>المالية</span></div>
+                <div class="access-btn" onclick="showPage('reports')"><i class="fas fa-file-alt"></i><span>التقارير</span></div>
+            </div>
+        </div>
 
-// عرض تسجيل الدخول / إنشاء حساب
-function showRegister(){ loginBox.classList.add("hidden"); registerBox.classList.remove("hidden"); }
-function showLogin(){ registerBox.classList.add("hidden"); loginBox.classList.remove("hidden"); }
+        <div id="batches" class="page">
+            <h3>إدارة الدواجن</h3>
+            <div class="mini-card" style="border:none; margin-bottom:10px">
+                <input type="number" id="bird-count" placeholder="عدد الطيور الجديدة">
+                <button class="btn-login" onclick="addBirds()">إضافة للقطيع</button>
+            </div>
+            <div id="bird-list"></div>
+        </div>
 
-// تسجيل الدخول
-function login(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const account = defaultAccounts.find(acc => acc.email === email && acc.password === password);
-  if(account){
-    localStorage.setItem("loggedIn", "true");
-    showDashboard();
-  }else{
-    alert("خطأ: البريد الإلكتروني أو كلمة المرور غير صحيحة");
-  }
-}
+    </main>
 
-// إنشاء حساب
-function register(){
-  const email = document.getElementById("rEmail").value;
-  const password = document.getElementById("rPassword").value;
-  if(!email || !password){ alert("املأ كل الحقول"); return; }
-  if(password.length<6){ alert("كلمة المرور لازم 6 أحرف أو أكثر"); return; }
-  defaultAccounts.push({email,password});
-  alert("تم إنشاء الحساب! استخدمه لتسجيل الدخول");
-  showLogin();
-}
+    <div class="bottom-nav" id="bot-nav" style="display:none;">
+        <div class="nav-item active" onclick="showPage('home')"><i class="fas fa-home"></i><div>لوحة القيادة</div></div>
+        <div class="nav-item" onclick="showPage('reports')"><i class="fas fa-chart-line"></i><div>التقارير</div></div>
+        <div class="nav-item" onclick="showPage('store')"><i class="fas fa-warehouse"></i><div>مخزون</div></div>
+        <div class="nav-item" onclick="showPage('settings')"><i class="fas fa-cog"></i><div>إعدادات</div></div>
+        <div class="nav-item" onclick="location.reload()"><i class="fas fa-sign-out-alt"></i><div>خروج</div></div>
+    </div>
 
-// تسجيل خروج
-function logout(){
-  localStorage.removeItem("loggedIn");
-  dashboard.classList.add("hidden");
-  loginBox.classList.remove("hidden");
-}
+    <script>
+        let db = JSON.parse(localStorage.getItem('Dousari_Pro_DB')) || { income: 196000, expense: 7000, birds: 0 };
 
-// عرض لوحة التحكم
-function showDashboard(){
-  loginBox.classList.add("hidden");
-  registerBox.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-}
+        function checkLogin() {
+            // محاكاة دخول بسيطة
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('top-head').style.display = 'flex';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('bot-nav').style.display = 'flex';
+            initChart();
+            updateStats();
+        }
 
-// التحقق من تسجيل الدخول عند تحميل الصفحة
-if(localStorage.getItem("loggedIn") === "true"){ showDashboard(); }
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const targetPage = document.getElementById(id);
+            if(targetPage) targetPage.classList.add('active');
+            
+            // إضافة كلاس active للزر السفلي
+            event.currentTarget.classList.add('active');
+        }
 
-// إضافة بيانات للأقسام
-function addData(section){
-  const value = prompt("أدخل البيانات لقسم "+section);
-  if(!value) return;
-  let allData = JSON.parse(localStorage.getItem(section) || "[]");
-  allData.push({value, date:new Date().toLocaleString()});
-  localStorage.setItem(section, JSON.stringify(allData));
-  alert("تم الحفظ ✔");
-}
+        function updateStats() {
+            document.getElementById('total-in').innerText = db.income.toLocaleString() + " د.ع";
+            document.getElementById('total-out').innerText = db.expense.toLocaleString() + " د.ع";
+            document.getElementById('net-profit').innerText = (db.income - db.expense).toLocaleString() + " د.ع";
+        }
 
-// إشعارات
-function sendNotify(){
-  if(Notification.permission !== "granted") Notification.requestPermission();
-  new Notification("إدارة الدواجن",{body:"تنبيه من النظام"});
-}
-</script>
+        let myPieChart;
+        function initChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if(myPieChart) myPieChart.destroy();
+            myPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    datasets: [{
+                        data: [db.income, db.expense],
+                        backgroundColor: ['#4caf50', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', plugins: { legend: { display: false } } }
+            });
+        }
 
+        function addBirds() {
+            const val = document.getElementById('bird-count').value;
+            if(val) {
+                alert("تمت إضافة " + val + " طير بنجاح");
+                db.birds += parseInt(val);
+                localStorage.setItem('Dousari_Pro_DB', JSON.stringify(db));
+            }
+        }
+    </script>
 </body>
 </html>
