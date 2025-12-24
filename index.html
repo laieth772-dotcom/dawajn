@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>إدارة الدواجن</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body{
   font-family: Tahoma;
@@ -35,6 +34,7 @@ button{
   background:#fff;
   padding:20px;
   border-radius:10px;
+  cursor:pointer;
 }
 .hidden{display:none}
 </style>
@@ -47,11 +47,11 @@ button{
   <input id="email" type="email" placeholder="البريد الإلكتروني">
   <input id="password" type="password" placeholder="كلمة المرور">
   <button onclick="login()">دخول</button>
-  <p><a href="#" onclick="showRegister()">إنشاء حساب</a></p>
+  <p>ما عندك حساب؟ <a href="#" onclick="showRegister()">إنشاء حساب</a></p>
 </div>
 
 <div class="container hidden" id="registerBox">
-  <h2>إنشاء حساب</h2>
+  <h2>إنشاء حساب جديد</h2>
   <input id="rEmail" type="email" placeholder="البريد الإلكتروني">
   <input id="rPassword" type="password" placeholder="كلمة المرور">
   <button onclick="register()">تسجيل</button>
@@ -73,77 +73,70 @@ button{
   <button onclick="logout()">تسجيل خروج</button>
 </div>
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,onAuthStateChanged,signOut }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore,collection,addDoc }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
+// بيانات وهمية لتسجيل الدخول
+const defaultAccounts = [{email:"admin@test.com", password:"123456"}];
 
-/* 🔴 غيّر القيم التالية فقط */
-const firebaseConfig = {
-  apiKey: "API_KEY",
-  authDomain: "PROJECT_ID.firebaseapp.com",
-  projectId: "PROJECT_ID",
-  storageBucket: "PROJECT_ID.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
-};
+// عرض تسجيل الدخول / إنشاء حساب
+function showRegister(){ loginBox.classList.add("hidden"); registerBox.classList.remove("hidden"); }
+function showLogin(){ registerBox.classList.add("hidden"); loginBox.classList.remove("hidden"); }
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-window.login = () =>{
-  signInWithEmailAndPassword(auth,email.value,password.value)
-  .catch(e=>alert(e.message));
-};
-
-window.register = () =>{
-  createUserWithEmailAndPassword(auth,rEmail.value,rPassword.value)
-  .then(showLogin)
-  .catch(e=>alert(e.message));
-};
-
-window.logout = ()=>signOut(auth);
-
-window.addData = async(section)=>{
-  const value = prompt("أدخل البيانات:");
-  if(!value)return;
-  await addDoc(collection(db,section),{
-    value:value,
-    date:new Date()
-  });
-  alert("تم الحفظ ✔");
-};
-
-window.sendNotify = ()=>{
-  if(Notification.permission!=="granted")
-    Notification.requestPermission();
-  new Notification("إدارة الدواجن",{body:"تنبيه من النظام"});
-};
-
-window.showRegister = ()=>{
-  loginBox.classList.add("hidden");
-  registerBox.classList.remove("hidden");
-};
-
-window.showLogin = ()=>{
-  registerBox.classList.add("hidden");
-  loginBox.classList.remove("hidden");
-};
-
-onAuthStateChanged(auth,user=>{
-  if(user){
-    loginBox.classList.add("hidden");
-    registerBox.classList.add("hidden");
-    dashboard.classList.remove("hidden");
+// تسجيل الدخول
+function login(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const account = defaultAccounts.find(acc => acc.email === email && acc.password === password);
+  if(account){
+    localStorage.setItem("loggedIn", "true");
+    showDashboard();
   }else{
-    dashboard.classList.add("hidden");
-    loginBox.classList.remove("hidden");
+    alert("خطأ: البريد الإلكتروني أو كلمة المرور غير صحيحة");
   }
-});
+}
+
+// إنشاء حساب
+function register(){
+  const email = document.getElementById("rEmail").value;
+  const password = document.getElementById("rPassword").value;
+  if(!email || !password){ alert("املأ كل الحقول"); return; }
+  if(password.length<6){ alert("كلمة المرور لازم 6 أحرف أو أكثر"); return; }
+  defaultAccounts.push({email,password});
+  alert("تم إنشاء الحساب! استخدمه لتسجيل الدخول");
+  showLogin();
+}
+
+// تسجيل خروج
+function logout(){
+  localStorage.removeItem("loggedIn");
+  dashboard.classList.add("hidden");
+  loginBox.classList.remove("hidden");
+}
+
+// عرض لوحة التحكم
+function showDashboard(){
+  loginBox.classList.add("hidden");
+  registerBox.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+}
+
+// التحقق من تسجيل الدخول عند تحميل الصفحة
+if(localStorage.getItem("loggedIn") === "true"){ showDashboard(); }
+
+// إضافة بيانات للأقسام
+function addData(section){
+  const value = prompt("أدخل البيانات لقسم "+section);
+  if(!value) return;
+  let allData = JSON.parse(localStorage.getItem(section) || "[]");
+  allData.push({value, date:new Date().toLocaleString()});
+  localStorage.setItem(section, JSON.stringify(allData));
+  alert("تم الحفظ ✔");
+}
+
+// إشعارات
+function sendNotify(){
+  if(Notification.permission !== "granted") Notification.requestPermission();
+  new Notification("إدارة الدواجن",{body:"تنبيه من النظام"});
+}
 </script>
 
 </body>
