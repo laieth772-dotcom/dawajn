@@ -2,27 +2,75 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام إدارة المزارع الذكي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الدواجن</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        h2 { color: #2c3e50; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #27ae60; border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #219150; }
+        :root { --p: #2e7d32; --s: #fbc02d; --bg: #f0f2f5; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; text-align: center; }
+        .box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 90%; max-width: 350px; margin: 100px auto; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; text-align: center; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: var(--p); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        #main-site { display: none; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .card { background: white; padding: 15px; border-radius: 10px; border-bottom: 4px solid var(--p); }
+        .header { background: var(--p); color: white; padding: 15px; font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <h2>تسجيل الدخول</h2>
-    <p>مرحباً بك في نظام إدارة الدواجن</p>
-    <form>
-        <input type="text" placeholder="اسم المستخدم" required>
-        <input type="password" placeholder="كلمة المرور" required>
-        <button type="submit">دخول للنظام</button>
-    </form>
-</div>
+    <div id="login-screen">
+        <div class="box">
+            <h2 style="color: var(--p);">تسجيل الدخول</h2>
+            <p>استخدم admin و 1234</p>
+            <input type="text" id="username" placeholder="اسم المستخدم">
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="checkLogin()">دخول للنظام</button>
+            <button onclick="bypass()" style="background: #777; font-size: 12px;">دخول تجريبي (بدون رمز)</button>
+        </div>
+    </div>
 
+    <div id="main-site">
+        <div class="header">لوحة إدارة المزرعة 🐔</div>
+        
+        <div class="grid">
+            <div class="card"><h3>الدجاج</h3><p id="c1">1000</p><button onclick="edit('c1')">تعديل</button></div>
+            <div class="card"><h3>الأفراخ</h3><p id="c2">500</p><button onclick="edit('c2')">تعديل</button></div>
+            <div class="card"><h3>البيض</h3><p id="c3">200</p><button onclick="edit('c3')">تعديل</button></div>
+            <div class="card"><h3>المفقسة</h3><p>نشطة</p></div>
+            <div class="card"><h3>العلف</h3><p>75%</p></div>
+            <div class="card"><h3>الأرباح</h3><p>500$</p></div>
+        </div>
+
+        <button onclick="location.reload()" style="background:red; margin-top: 30px; width: auto; padding: 10px 40px;">تسجيل خروج</button>
+    </div>
+
+    <script>
+        function checkLogin() {
+            var u = document.getElementById('username').value;
+            var p = document.getElementById('password').value;
+
+            // التأكد من الكلمات (حروف صغيرة admin)
+            if (u.trim() === "admin" && p.trim() === "1234") {
+                showSite();
+            } else {
+                alert("خطأ! تأكد من كتابة admin و 1234 بشكل صحيح");
+            }
+        }
+
+        function bypass() {
+            showSite();
+        }
+
+        function showSite() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-site').style.display = 'block';
+        }
+
+        function edit(id) {
+            var val = prompt("أدخل الرقم الجديد:");
+            if(val) document.getElementById(id).innerText = val;
+        }
+    </script>
 </body>
 </html>
